@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.17;
 
 import "./InnerProductVerifier.sol";
 import "./Utils.sol";
@@ -11,8 +11,8 @@ contract TransferVerifier {
 
     InnerProductVerifier immutable _ip;
 
-    bytes32 immutable gSumX; // 0x2fa4d012d8b2496ef27316c1447cd8958b034225a0fad7f9e9b944b7de8c5064 when Utils.m == 5
-    bytes32 immutable gSumY; // 0x0c648fe5b6fbbda8eec3d8ce13a891b005f4228f90638e84041b46a17bff0aae
+    bytes32 immutable _gSumX; // 0x2fa4d012d8b2496ef27316c1447cd8958b034225a0fad7f9e9b944b7de8c5064 when Utils.m == 5
+    bytes32 immutable _gSumY; // 0x0c648fe5b6fbbda8eec3d8ce13a891b005f4228f90638e84041b46a17bff0aae
 
     constructor(address ip_) {
         _ip = InnerProductVerifier(ip_);
@@ -20,8 +20,8 @@ contract TransferVerifier {
         for (uint256 i = 0; i < M << 1; i++) {
             gSumTemp = gSumTemp.add(gs(i));
         }
-        gSumX = gSumTemp.x;
-        gSumY = gSumTemp.y;
+        _gSumX = gSumTemp.x;
+        _gSumY = gSumTemp.y;
     }
 
     function g() internal view returns (Utils.Point memory) {
@@ -43,7 +43,7 @@ contract TransferVerifier {
     }
 
     function gSum() private view returns (Utils.Point memory) {
-        return Utils.Point(gSumX, gSumY);
+        return Utils.Point(_gSumX, _gSumY);
     }
 
     struct Locals {

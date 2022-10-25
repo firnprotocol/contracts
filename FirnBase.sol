@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.17;
 
 import "./Utils.sol";
 import "./EpochTree.sol";
@@ -11,7 +11,6 @@ contract FirnBase is EpochTree {
 
     mapping(bytes32 => Utils.Point[2]) public acc; // main account mapping
     mapping(bytes32 => Utils.Point[2]) public pending; // storage for pending transfers
-    mapping(address => bytes) public backups;
 
     struct Info { // try to save storage space by using smaller int types here
         uint64 epoch;
@@ -46,10 +45,6 @@ contract FirnBase is EpochTree {
 
     receive() external payable onlyLogic {
         // modifier isn't necessary for security, but will prevent people from wasting funds
-    }
-
-    function setBackup(address owner, bytes calldata ciphertext) external onlyLogic {
-        backups[owner] = ciphertext;
     }
 
     function setAcc(bytes32 pub, Utils.Point[2] calldata value) external onlyLogic {

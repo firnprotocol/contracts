@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.17;
 
 import "./FirnBase.sol";
 import "./DepositVerifier.sol";
@@ -19,9 +19,9 @@ contract FirnLogic {
     uint256 constant EPOCH_LENGTH = 60;
 
     FirnBase immutable _base;
-    DepositVerifier immutable _depositVerifier;
-    TransferVerifier immutable _transferVerifier;
-    WithdrawalVerifier immutable _withdrawalVerifier;
+    DepositVerifier immutable _deposit;
+    TransferVerifier immutable _transfer;
+    WithdrawalVerifier immutable _withdrawal;
 
     event RegisterOccurred(address indexed sender, bytes32 indexed account);
     event DepositOccurred(bytes32[N] Y, bytes32[N] C, bytes32 D, address indexed source, uint32 amount); // amount not indexed
@@ -30,11 +30,11 @@ contract FirnLogic {
 
     address _owner;
     address _treasury;
-    uint32 public _fee;
+    uint32 _fee;
 
     // some duplication here, but this is less painful than trying to retrieve it from the IP verifier / elsewhere.
-    bytes32 immutable gX;
-    bytes32 immutable gY;
+    bytes32 immutable _gX;
+    bytes32 immutable _gY;
 
     modifier onlyOwner() {
         require(msg.sender == _owner, "Caller is not the owner.");
@@ -44,13 +44,13 @@ contract FirnLogic {
     constructor(address payable base_, address deposit_, address transfer_, address withdrawal_) {
         _owner = msg.sender;
         _base = FirnBase(base_);
-        _depositVerifier = DepositVerifier(deposit_);
-        _transferVerifier = TransferVerifier(transfer_);
-        _withdrawalVerifier = WithdrawalVerifier(withdrawal_);
+        _deposit = DepositVerifier(deposit_);
+        _transfer = TransferVerifier(transfer_);
+        _withdrawal = WithdrawalVerifier(withdrawal_);
 
         Utils.Point memory gTemp = Utils.mapInto("g");
-        gX = gTemp.x;
-        gY = gTemp.y;
+        _gX = gTemp.x;
+        _gY = gTemp.y;
     }
 
     function administrate(address owner_, address treasury_, uint32 fee_) external onlyOwner {
@@ -60,7 +60,7 @@ contract FirnLogic {
     }
 
     function g() internal view returns (Utils.Point memory) {
-        return Utils.Point(gX, gY);
+        return Utils.Point(_gX, _gY);
     }
 
     function rollOver(bytes32 Y, uint64 epoch) internal {
@@ -125,12 +125,10 @@ contract FirnLogic {
         }
     }
 
-    function register(bytes32 Y, bytes32[2] calldata signature, bytes calldata ciphertext) external payable {
+    function register(bytes32 Y, bytes32[2] calldata signature) external payable {
         require(msg.value == 1e16, "Amount must be 0.010 ETH.");
 
         uint64 epoch = uint64(block.timestamp / EPOCH_LENGTH);
-        require(_base.backups(msg.sender).length == 0, "Backup already exists.");
-        _base.setBackup(msg.sender, ciphertext);
 
         uint32 credit = uint32(msg.value / 1e15); // == 10.
         (bool success,) = payable(_base).call{value: msg.value}(""); // forward $ to base
@@ -144,16 +142,11 @@ contract FirnLogic {
 
         Utils.Point memory pub = Utils.decompress(Y);
         Utils.Point memory K = g().mul(uint256(signature[1])).add(pub.mul(uint256(signature[0]).neg()));
-        uint256 c = uint256(keccak256(abi.encode("Welcome to FIRN", address(this), Y, K))).mod();
+        uint256 c = uint256(keccak256(abi.encode("Welcome to Firn.", address(this), Y, K))).mod();
         require(bytes32(c) == signature[0], "Signature failed to verify.");
         touch(Y, credit, epoch);
 
         emit RegisterOccurred(msg.sender, Y);
-    }
-
-    function overwriteBackup(bytes calldata ciphertext) external {
-        // don't call this unless you know exactly what you're doing.
-        _base.setBackup(msg.sender, ciphertext);
     }
 
     function deposit(bytes32[N] calldata Y, bytes32[N] calldata C, bytes32 D, bytes calldata proof) external payable {
@@ -185,7 +178,7 @@ contract FirnLogic {
             touch(Y[i], credit, epoch); // weird question whether this should be 0 or credit... revisit.
         }
 
-        _depositVerifier.verify(credit, statement, Utils.deserializeDeposit(proof));
+        _deposit.verify(credit, statement, Utils.deserializeDeposit(proof));
 
         emit DepositOccurred(Y, C, D, msg.sender, credit);
     }
@@ -230,7 +223,7 @@ contract FirnLogic {
         statement.u = Utils.decompress(u);
         statement.fee = tip;
 
-        _transferVerifier.verify(statement, Utils.deserializeTransfer(proof));
+        _transfer.verify(statement, Utils.deserializeTransfer(proof));
 
         _base.pay(msg.sender, uint256(tip) * 1e15, ""); // use all gas here... no reason not to
 
@@ -281,7 +274,7 @@ contract FirnLogic {
         statement.fee = tip + burn; // implicit conversion to uint256
 
         uint256 salt = uint256(keccak256(abi.encode(destination, data))); // .mod();
-        _withdrawalVerifier.verify(amount, statement, Utils.deserializeWithdrawal(proof), salt);
+        _withdrawal.verify(amount, statement, Utils.deserializeWithdrawal(proof), salt);
 
         _base.pay{gas: 10000}(msg.sender, uint256(tip) * 1e15, ""); // payable(msg.sender).transfer(uint256(tip) * 1e15);
         _base.pay(_treasury, uint256(burn) * 1e15, ""); // (bool success,) = payable(_treasury).call{value: uint256(burn) * 1e15}("");

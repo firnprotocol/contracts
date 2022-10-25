@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.17;
 
 import "./ERC20.sol";
 
@@ -38,7 +38,7 @@ contract Treasury {
     }
 
     function payout() internal {
-        if (address(this).balance == 0) return; // short-circuit, avoid 0 `Payout`s.
+        if (msg.value == 0) return; // short-circuit, avoid 0 `Payout`s.
         require(gasleft() >= 10000000, "Not enough gas supplied.");
         _firnSupply = _erc20.totalSupply();
         traverse(_erc20.root());

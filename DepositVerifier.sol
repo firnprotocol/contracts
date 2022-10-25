@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.17;
 
 import "./InnerProductVerifier.sol";
 import "./Utils.sol";
@@ -9,27 +9,27 @@ contract DepositVerifier {
     using Utils for uint256;
     using Utils for Utils.Point;
 
-    InnerProductVerifier immutable innerProductVerifier;
+    InnerProductVerifier immutable _ip;
 
-    constructor(address _innerProductVerifier) {
-        innerProductVerifier = InnerProductVerifier(_innerProductVerifier);
+    constructor(address ip_) {
+        _ip = InnerProductVerifier(ip_);
     }
 
     function g() internal view returns (Utils.Point memory) {
-        return Utils.Point(innerProductVerifier.gX(), innerProductVerifier.gY());
+        return Utils.Point(_ip.gX(), _ip.gY());
     }
 
     function h() internal view returns (Utils.Point memory) {
-        return Utils.Point(innerProductVerifier.hX(), innerProductVerifier.hY());
+        return Utils.Point(_ip.hX(), _ip.hY());
     }
 
     function gs(uint256 i) internal view returns (Utils.Point memory) {
-        (bytes32 x, bytes32 y) = innerProductVerifier.gs(i);
+        (bytes32 x, bytes32 y) = _ip.gs(i);
         return Utils.Point(x, y);
     }
 
     function hs(uint256 i) internal view returns (Utils.Point memory) {
-        (bytes32 x, bytes32 y) = innerProductVerifier.hs(i);
+        (bytes32 x, bytes32 y) = _ip.hs(i);
         return Utils.Point(x, y);
     }
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.6.0) (token/ERC20/ERC20.sol)
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.17;
 
 import "./BalanceTree.sol";
 
