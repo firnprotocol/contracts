@@ -23,7 +23,7 @@ contract FirnLogic {
     TransferVerifier immutable _transfer;
     WithdrawalVerifier immutable _withdrawal;
 
-    event RegisterOccurred(address indexed sender, bytes32 indexed account);
+    event RegisterOccurred(address indexed sender, bytes32 indexed account, uint32 amount);
     event DepositOccurred(bytes32[N] Y, bytes32[N] C, bytes32 D, address indexed source, uint32 amount); // amount not indexed
     event TransferOccurred(bytes32[N] Y, bytes32[N] C, bytes32 D);
     event WithdrawalOccurred(bytes32[N] Y, bytes32[N] C, bytes32 D, uint32 amount, address indexed destination, bytes data);
@@ -126,11 +126,12 @@ contract FirnLogic {
     }
 
     function register(bytes32 Y, bytes32[2] calldata signature) external payable {
-        require(msg.value == 1e16, "Amount must be 0.010 ETH.");
+        require(msg.value >= 1e16, "Must be at least 0.010 ETH.");
+        require(msg.value % 1e15 == 0, "Must be a multiple of 0.001 ETH.");
 
         uint64 epoch = uint64(block.timestamp / EPOCH_LENGTH);
 
-        uint32 credit = uint32(msg.value / 1e15); // == 10.
+        uint32 credit = uint32(msg.value / 1e15); // >= 10.
         (bool success,) = payable(_base).call{value: msg.value}(""); // forward $ to base
         require(success, "Forwarding funds to base failed.");
         require(address(_base).balance <= 1e15 * 0xFFFFFFFF, "Escrow pool now too large.");
@@ -146,7 +147,7 @@ contract FirnLogic {
         require(bytes32(c) == signature[0], "Signature failed to verify.");
         touch(Y, credit, epoch);
 
-        emit RegisterOccurred(msg.sender, Y);
+        emit RegisterOccurred(msg.sender, Y, credit);
     }
 
     function deposit(bytes32[N] calldata Y, bytes32[N] calldata C, bytes32 D, bytes calldata proof) external payable {

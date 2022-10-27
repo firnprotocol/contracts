@@ -4,7 +4,7 @@ You can find our contracts on Etherscan.
 
 Contract Name | Optimism Address | Mainnet Address
 --- | --- | ---
-[Firn: Logic Contract](./FirnLogic.sol) | [`0xddfFdf3B0FF6D9D85135c5041bdE61D03FeE04A3`](https://optimistic.etherscan.io/address/0xddfFdf3B0FF6D9D85135c5041bdE61D03FeE04A3#code) | [`0x324B6f1Aa034433fc4135E4A59115d29c6e01605`](https://etherscan.io/address/0x324B6f1Aa034433fc4135E4A59115d29c6e01605#code)
+[Firn: Logic Contract](./FirnLogic.sol) | [`0xddfFdf3B0FF6D9D85135c5041bdE61D03FeE04A3`](https://optimistic.etherscan.io/address/0xddfFdf3B0FF6D9D85135c5041bdE61D03FeE04A3#code) | [`0x853EA6841C8E49a8e70d70Cac6456de1bC6B0609`](https://etherscan.io/address/0x853EA6841C8E49a8e70d70Cac6456de1bC6B0609#code)
 [Firn: Base Contract](./FirnBase.sol) | [`0x289c6f0a48461d6247b179cf99794c939b1cb3fe`](https://optimistic.etherscan.io/address/0x289c6f0a48461d6247b179cf99794c939b1cb3fe#code) | [`0x047AD931277c2Cac84B3204Dfa94c3bdF5fb8375`](https://etherscan.io/address/0x047AD931277c2Cac84B3204Dfa94c3bdF5fb8375#code)
 [FIRN Token Contract](./ERC20.sol) | [`0xb20d84ebFeCdC6821448C7094564a039F0AE5EA4`](https://optimistic.etherscan.io/address/0xb20d84ebFeCdC6821448C7094564a039F0AE5EA4#code) | `N/A`
 [Firn Treasury Contract](./Treasury.sol) | [`0x362b74E4F5a7d5fB018C7697612ED9aA7eFCeFf6`](https://optimistic.etherscan.io/address/0x362b74E4F5a7d5fB018C7697612ED9aA7eFCeFf6#code) | `N/A`
