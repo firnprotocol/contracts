@@ -83,7 +83,6 @@ contract ERC20 is BalanceTree {
     constructor(string memory name_, string memory symbol_) {
         _name = name_;
         _symbol = symbol_;
-        _mint(msg.sender, (1 << 32) * 10**15);
         _owner = msg.sender;
     }
 

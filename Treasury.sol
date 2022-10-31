@@ -8,6 +8,8 @@ contract Treasury {
     ERC20 immutable _erc20;
     uint256 _firnSupply;
     address _owner;
+    uint256 _startGas;
+    uint256 constant _endGas = 100000; // hardcode to save sloads...
 
     uint256 private _status;
     mapping(address => bool) _skip;
@@ -24,8 +26,9 @@ contract Treasury {
         _erc20 = ERC20(erc20_);
     }
 
-    function administrate(address owner_) external onlyOwner {
+    function administrate(address owner_, uint256 startGas_) external onlyOwner {
         _owner = owner_;
+        _startGas = startGas_;
     }
 
     function setSkip(address key, bool value) external onlyOwner {
@@ -33,13 +36,11 @@ contract Treasury {
     }
 
     receive() external payable {
-        // should probably `require(msg.sender == firn)`, to save people some headaches.
-        payout();
+
     }
 
-    function payout() internal {
-        if (msg.value == 0) return; // short-circuit, avoid 0 `Payout`s.
-        require(gasleft() >= 10000000, "Not enough gas supplied.");
+    function payout() external {
+        require(gasleft() >= _startGas, "Not enough gas supplied.");
         _firnSupply = _erc20.totalSupply();
         traverse(_erc20.root());
     }
@@ -50,7 +51,7 @@ contract Treasury {
         if (right != address(0)) {
             traverse(right);
         }
-        if (gasleft() < 1000000) {
+        if (gasleft() < _endGas) {
             return;
         }
         uint256 firnBalance = _erc20.balanceOf(cursor);
