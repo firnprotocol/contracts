@@ -7,11 +7,11 @@ import "./Firn.sol";
 contract FirnReader {
     Firn immutable _firn;
 
-    constructor(address payable firn_) {
+    constructor(address firn_) {
         _firn = Firn(firn_); // actually pass the address of the proxy
     }
 
-    function sampleAnonset(bytes32 seed,  uint32 amount) external view returns (bytes32[N] memory result) {
+    function sampleAnonset(bytes32 seed, uint32 amount) external view returns (bytes32[N] memory result) {
         uint256 successes = 0;
         uint256 attempts = 0;
         while (successes < N) {
@@ -22,13 +22,13 @@ contract FirnReader {
             }
             seed = keccak256(abi.encode(seed));
             uint256 entropy = uint256(seed);
-            uint256 layer = entropy % _firn.blackHeight();
-            entropy >>= 8; // an overestimate on the _log_ (!) of the blackheight of _firn. blackheight <= 256.
+            uint256 layer = (entropy & 0xFFFFFFFF) % _firn.blackHeight();
+            entropy >>= 32;
             uint64 cursor = _firn.root();
             bool red = false; // avoid a "shadowing" warning
             for (uint256 i = 0; i < layer; i++) {
                 // inv: at the beginning of the loop, it points to the index-ith black node in the rightmost path.
-                (, ,  cursor, ) = _firn.nodes(cursor); // _firn.nodes[cursor].right
+                (, , cursor, ) = _firn.nodes(cursor); // _firn.nodes[cursor].right
                 (, , , red) = _firn.nodes(cursor); // if (_firn.nodes[cursor].red)
                 if (red) (, , cursor, ) = _firn.nodes(cursor);
             }
@@ -70,7 +70,7 @@ contract FirnReader {
             }
             entropy >>= 2;
             uint256 length = _firn.lengths(cursor);
-            bytes32 account = _firn.lists(cursor,  entropy % length);
+            bytes32 account = _firn.lists(cursor, entropy % length);
             (, uint64 candidate, ) = _firn.info(account); // what is the total amount this person has deposited?
             if (candidate < amount) continue; // skip them for now
             bool duplicate = false;
